@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAMU Buildings - Info Display</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map { height: 500px; }
+        .info { padding: 6px 8px; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map').setView([30.618, -96.336], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const info = L.control();
+        info.onAdd = function() {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        info.update = function(props) {
+            this._div.innerHTML = '<h4>BldgName and BldgAbbr</h4>' + (props ?
+                '<b>' + props.BldgName + '</b><br />' + props.BldgAbbr :
+                'Hover over a building');
+        };
+        info.addTo(map);
+
+        fetch('https://raw.githubusercontent.com/OHZ-1234/LAB5/main/tamubuildings.js')
+            .then(response => response.text())
+            .then(data => {
+                const jsonStr = data.substring(data.indexOf('{'), data.lastIndexOf('}') + 1);
+                const tamuData = JSON.parse(jsonStr);
+                L.geoJSON(tamuData, {
+                    onEachFeature: function(feature, layer) {
+                        layer.on({
+                            mouseover: function(e) {
+                                info.update(feature.properties);
+                            },
+                            mouseout: function(e) {
+                                info.update();
+                            }
+                        });
+                    }
+                }).addTo(map);
+            });
+    </script>
+</body>
+</html>
