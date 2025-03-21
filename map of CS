@@ -14,26 +14,29 @@
     <h1>College Station Map</h1>
     <div id="map"></div>
     <script>
-        const map = L.map('map').setView([30.628, -96.334], 13);
+        const map = L.map('map').setView([30.628, -96.334], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Load GeoJSON data for College Station boundary
-        fetch('college_station_boundary.geojson')
-            .then(response => response.json())
-            .then(data => {
-                L.geoJSON(data, {
-                    style: {
-                        color: 'red',
-                        fillColor: 'red',
-                        fillOpacity: 0.1
-                    }
-                }).addTo(map).bindPopup("College Station City Limits");
-            });
+        // Simplified College Station boundary (approximate)
+        const collegeStationBoundary = [
+            [30.6700, -96.3800],
+            [30.6800, -96.3000],
+            [30.5900, -96.2700],
+            [30.5700, -96.3200],
+            [30.5800, -96.3700]
+        ];
 
+        L.polygon(collegeStationBoundary, {
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 0.1
+        }).addTo(map).bindPopup("College Station City Limits (Approximate)");
+        
         // Add a marker for Texas A&M University
         L.marker([30.6188, -96.3344]).addTo(map).bindPopup("Texas A&M University");
     </script>
 </body>
 </html>
+
