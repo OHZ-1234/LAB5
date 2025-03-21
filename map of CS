@@ -19,19 +19,20 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        const collegeStationBoundary = [
-            [30.6600, -96.3700],
-            [30.6600, -96.2700],
-            [30.5700, -96.2700],
-            [30.5700, -96.3700]
-        ];
+        // Load GeoJSON data for College Station boundary
+        fetch('college_station_boundary.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        color: 'red',
+                        fillColor: 'red',
+                        fillOpacity: 0.1
+                    }
+                }).addTo(map).bindPopup("College Station City Limits");
+            });
 
-        L.polygon(collegeStationBoundary, {
-            color: 'red',
-            fillColor: 'red',
-            fillOpacity: 0.1
-        }).addTo(map).bindPopup("College Station City Limits");
-        
+        // Add a marker for Texas A&M University
         L.marker([30.6188, -96.3344]).addTo(map).bindPopup("Texas A&M University");
     </script>
 </body>
