@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAMU Buildings Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://github.com/OHZ-1234/LAB5/blob/main/tamubuildings.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Texas A&M University Buildings</h1>
+    <p>Hover over buildings to see details</p>
+    <div id="map"></div>
+    
+    <script>
+        // Initialize map centered on TAMU campus
+        var map = L.map('map').setView([30.618, -96.336], 15);
+        
+        // Add OpenStreetMap base layer
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add satellite imagery as alternative base layer
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+        
+        // Create base maps object for layer control
+        var baseMaps = {
+            "Street Map": osmLayer,
+            "Satellite": satelliteLayer
+        };
+        
+        // Add layer control to switch between base maps
+        L.control.layers(baseMaps).addTo(map);
+        
+        // Create info control
+        var info = L.control();
+        
+        info.onAdd = function(map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        
+        // Update info control with building information
+        info.update = function(props) {
+            this._div.innerHTML = '<h4>BldgName and BldgAbbr</h4>' + (props ?
+                '<b>' + props.BldgName + '</b><br />' + props.BldgAbbr :
+                'Hover over a building');
+        };
+        
+        info.addTo(map);
+        
+        // Style function for GeoJSON features
+        function style(feature) {
+            return {
+                weight: 2,
+                opacity: 1,
+                color: '#500000',
+                dashArray: '3',
+                fillOpacity: 0.5,
+                fillColor: '#500000'
+            };
+        }
+        
+        // Highlight feature on mouseover
+        function highlightFeature(e) {
+            var layer = e.target;
+            
+            layer.setStyle({
+                weight: 3,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            
+            layer.bringToFront();
+            info.update(layer.feature.properties);
+        }
+        
+        // Reset highlight on mouseout
+        function resetHighlight(e) {
+            geojsonLayer.resetStyle(e.target);
+            info.update();
+        }
+        
+        // Zoom to feature on click
+        function zoomToFeature(e) {
+            map.fitBounds(e.target.getBounds());
+        }
+        
+        // Bind events to each feature
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: zoomToFeature
+            });
+        }
+        
+        // Download and add GeoJSON data
+        fetch('https://raw.githubusercontent.com/OHZ-1234/LAB5/main/tamubuildings.js')
+            .then(response => response.text())
+            .then(data => {
+                // Extract the JSON part from the JavaScript file
+                var jsonStr = data.substring(data.indexOf('{'), data.lastIndexOf('}') + 1);
+                var tamuData = JSON.parse(jsonStr);
+                
+                // Add GeoJSON data to map
+                var geojsonLayer = L.geoJSON(tamuData, {
+                    style: style,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            })
+            .catch(error => console.error('Error loading GeoJSON data:', error));
+        
+        // Add scale control
+        L.control.scale().addTo(map);
+    </script>
+    <p>Data source: Texas A&M University GIS data</p>
+</body>
+</html>
