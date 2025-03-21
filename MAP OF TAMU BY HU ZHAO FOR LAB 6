@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customized TAMU Buildings Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; }
+        .info { padding: 6px 8px; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map').setView([30.618, -96.336], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const info = L.control();
+        info.onAdd = function() {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        info.update = function(props) {
+            this._div.innerHTML = '<h4>BldgName and BldgAbbr</h4>' + (props ?
+                '<b>' + props.BldgName + '</b><br />' + props.BldgAbbr :
+                'Hover over a building');
+        };
+        info.addTo(map);
+
+        function style(feature) {
+            return {
+                fillColor: '#500000',
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                fillOpacity: 0.7
+            };
+        }
+
+        fetch('https://raw.githubusercontent.com/OHZ-1234/LAB5/main/tamubuildings.js')
+            .then(response => response.text())
+            .then(data => {
+                const jsonStr = data.substring(data.indexOf('{'), data.lastIndexOf('}') + 1);
+                const tamuData = JSON.parse(jsonStr);
+                L.geoJSON(tamuData, {
+                    style: style,
+                    onEachFeature: function(feature, layer) {
+                        layer.on({
+                            mouseover: function(e) {
+                                layer.setStyle({
+                                    weight: 3,
+                                    color: '#666',
+                                    fillOpacity: 0.9
+                                });
+                                info.update(feature.properties);
+                            },
+                            mouseout: function(e) {
+                                layer.setStyle(style(feature));
+                                info.update();
+                            },
+                            click: function(e) {
+                                map.fitBounds(e.target.getBounds());
+                            }
+                        });
+                    }
+                }).addTo(map);
+            });
+    </script>
+</body>
+</html>
