@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Station Map</title>
+    <title>Yourname First Web Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
@@ -11,32 +11,55 @@
     </style>
 </head>
 <body>
-    <h1>College Station Map</h1>
+    <h1>Yourname First Web Map</h1>
     <div id="map"></div>
     <script>
-        const map = L.map('map').setView([30.628, -96.334], 12);
+        const map = L.map('map').setView([30.628, -96.334], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Simplified College Station boundary (approximate)
-        const collegeStationBoundary = [
-            [30.6700, -96.3800],
-            [30.6800, -96.3000],
-            [30.5900, -96.2700],
-            [30.5700, -96.3200],
-            [30.5800, -96.3700]
-        ];
+        // Locate Function
+        map.locate({ setView: true, maxZoom: 16 });
 
-        L.polygon(collegeStationBoundary, {
-            color: 'red',
-            fillColor: 'red',
-            fillOpacity: 0.1
-        }).addTo(map).bindPopup("College Station City Limits (Approximate)");
-        
-        // Add a marker for Texas A&M University
-        L.marker([30.6188, -96.3344]).addTo(map).bindPopup("Texas A&M University");
+        // Kyle Field Circle
+        L.circle([30.6084, -96.3403], {
+            color: 'blue',
+            fillColor: '#f03',
+            fillOpacity: 0.5,
+            radius: 500
+        }).addTo(map).bindPopup("Kyle Field");
+
+        // Custom Icons for O&M and Academic Building
+        const greenStarIcon = L.divIcon({
+            className: 'green-star',
+            html: '<div style="color: green; font-size: 24px;">★</div>',
+            iconSize: [25, 25],
+            iconAnchor: [12, 25],
+            popupAnchor: [0, -20]
+        });
+
+        const yellowStarIcon = L.divIcon({
+            className: 'yellow-star',
+            html: '<div style="color: yellow; font-size: 24px;">★</div>',
+            iconSize: [25, 25],
+            iconAnchor: [12, 25],
+            popupAnchor: [0, -20]
+        });
+
+        L.marker([30.6235, -96.3375], { icon: greenStarIcon }).addTo(map)  // O&M Building
+            .bindPopup("O&M Building");
+
+        L.marker([30.6188, -96.3344], { icon: yellowStarIcon }).addTo(map) // Academic Building
+            .bindPopup("Academic Building");
+
+        // Event to show coordinates on click
+        map.on('click', function(e) {
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent("Coordinates: " + e.latlng.toString())
+                .openOn(map);
+        });
     </script>
 </body>
 </html>
-
